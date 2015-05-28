@@ -1,6 +1,13 @@
 rust-uritemplate
 ================
 
+[![Build Status](https://img.shields.io/travis/chowdhurya/rust-uritemplate/master.svg?style=flat-square)](https://travis-ci.org/chowdhurya/rust-uritemplate)
+[![Cargo version](https://img.shields.io/crates/v/uritemplate.svg?style=flat-square)](https://crates.io/crates/uritemplate)
+[![License](https://img.shields.io/crates/l/uritemplate.svg?style=flat-square)](https://github.com/chowdhurya/rust-uritemplate/blob/master/LICENSE)
+
+[Documentation](https://chowdhurya.github.io/rust-uritemplate/uritemplate/)
+
+
 `rust-uritemplate` is a Rust implementation of
 [RFC6570  - URI Template](http://tools.ietf.org/html/rfc6570) that can process
 URI Templates up to and including ones designated as Level 4 by the
