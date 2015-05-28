@@ -9,7 +9,7 @@ homepage = "https://github.com/chowdhurya/rust-uritemplate/"
 repository = "https://github.com/chowdhurya/rust-uritemplate/"
 readme = "README.md"
 keywords = [
-  "URI template",
+  "uritemplates",
   "URL",
   "URI",
   "template",
