@@ -88,3 +88,9 @@ fn test_set() {
     t.set("listvar", Vec::<String>::new());
     t.set("assocvar", Vec::<(String, String)>::new());
 }
+
+#[test]
+fn test_literal_expansion() {
+    let uri = UriTemplate::new("hey!%%25").build();
+    assert_eq!(uri, "hey!%25%25");
+}

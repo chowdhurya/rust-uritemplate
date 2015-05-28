@@ -1,6 +1,6 @@
 [package]
 name = "uritemplate"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Amit <amitc97@gmail.com>"]
 description = """Rust implementation of RFC6570 - URI Template that can process\
  URI Templates up and to including ones designated Level 4."""

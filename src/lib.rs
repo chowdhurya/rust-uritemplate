@@ -454,7 +454,7 @@ impl UriTemplate {
         let mut res = String::new();
         for component in &self.components {
             let next = match *component {
-                TemplateComponent::Literal(ref s) => s.to_string(),
+                TemplateComponent::Literal(ref s) => encode_reserved(s),
                 TemplateComponent::VarList(ref op, ref varlist) => {
                     self.build_varlist(op, varlist)
                 }
