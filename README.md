@@ -12,7 +12,7 @@ Basic Usage
 -----------
 Variable setting can be chained for nice, clean code.
 
-```
+```rust
 let uri = UriTemplate::new("/view/{object:1}/{/object,names}{?query*}")
     .set("object", "lakes")
     .set("names", &["Erie", "Superior", "Ontario"])
@@ -25,7 +25,7 @@ assert_eq!(uri, "/view/l/lakes/Erie,Superior,Ontario?size=15&lang=en");
 It is not possible to set a variable to the value "undefined". Instead, simply
 delete the variable if you have already set it.
 
-```
+```rust
 let mut t = UriTemplate::new("{hello}");
 t.set("hello", "Hello World!");
 assert_eq!(t.build(), "Hello%20World%21");
