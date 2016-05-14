@@ -295,13 +295,13 @@ impl UriTemplate {
                     VarSpecType::Raw | VarSpecType::Prefixed(_) => {
                         if named {
                             res.push_str(&encode_reserved(&v.name));
-                            if l.connect("").len() == 0 {
+                            if l.join("").len() == 0 {
                                 res.push_str(ifemp);
                                 return Some(res);
                             }
                             res.push('=');
                         }
-                        res.push_str(&encode_vec(l, encoder).connect(","));
+                        res.push_str(&encode_vec(l, encoder).join(","));
                     },
                     VarSpecType::Exploded => {
                         if named {
@@ -324,10 +324,10 @@ impl UriTemplate {
                                     val
                                 })
                                 .collect();
-                            res.push_str(&pairs.connect(sep));
+                            res.push_str(&pairs.join(sep));
                         } else {
                             res.push_str(
-                                &encode_vec(&l, encoder).connect(sep)
+                                &encode_vec(&l, encoder).join(sep)
                             );
                         }
                     }
@@ -352,7 +352,7 @@ impl UriTemplate {
                                 )
                             })
                             .collect();
-                        res.push_str(&pairs.connect(","));
+                        res.push_str(&pairs.join(","));
                     },
                     VarSpecType::Exploded => {
                         if named {
@@ -375,7 +375,7 @@ impl UriTemplate {
                                     val
                                 })
                                 .collect();
-                            res.push_str(&pairs.connect(sep));
+                            res.push_str(&pairs.join(sep));
                         } else {
                             let pairs: Vec<String> = a
                                 .iter()
@@ -387,7 +387,7 @@ impl UriTemplate {
                                     )
                                 })
                                 .collect();
-                            res.push_str(&pairs.connect(sep));
+                            res.push_str(&pairs.join(sep));
                         }
                     }
                 }
@@ -433,7 +433,7 @@ impl UriTemplate {
         let mut res = String::new();
         if values.len() != 0 {
             res.push_str(first);
-            res.push_str(&values.connect(sep));
+            res.push_str(&values.join(sep));
         }
 
         res
