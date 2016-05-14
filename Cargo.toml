@@ -1,6 +1,6 @@
 [package]
 name = "uritemplate"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Amit <amitc97@gmail.com>"]
 description = """Rust implementation of RFC6570 - URI Template that can process\
  URI Templates up and to including ones designated Level 4."""
@@ -18,4 +18,4 @@ keywords = [
 license = "BSD-3-Clause"
 
 [dependencies]
-regex = "0.1.32"
+regex = "0.1.69"

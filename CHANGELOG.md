@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 (2016-05-14)
+
+- Updated dependency
+- Removed use of deprecated connect() method 
+
 ## 0.1.1 (2015-05-28)
 
 - Literal expansion now encodes any characters that are not
