@@ -92,5 +92,5 @@ fn test_set() {
 #[test]
 fn test_literal_expansion() {
     let uri = UriTemplate::new("hey!%%25").build();
-    assert_eq!(uri, "hey!%25%25");
+    assert_eq!(uri, "hey!%25%2525");
 }

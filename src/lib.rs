@@ -51,8 +51,6 @@
 //! In addition, you can implement `IntoTemplateVar` for your own types. View the
 //! documentation for `IntoTemplateVar` for information on how that works.
 
-extern crate regex;
-
 mod percent_encoding;
 mod templatevar;
 
