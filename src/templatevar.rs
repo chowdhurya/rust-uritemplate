@@ -17,6 +17,9 @@ pub enum TemplateVar {
     AssociativeArray(Vec<(String, String)>)
 }
 
+pub trait IntoTemplateVar {
+    fn into_template_var(self) -> TemplateVar;
+}
 /// IntoTemplateVar represents any type that can be converted into a TemplateVar
 /// for use as the value of a template variable, such as a `String`,
 /// `Vec<String>`, or `Vec<(String, String)>`. Default implementations are
@@ -29,7 +32,9 @@ pub enum TemplateVar {
 /// your struct, not the actual struct, unless you intend to move the value
 /// efficiently.
 ///
-/// ```ignore
+/// ```
+/// use uritemplate::{TemplateVar,IntoTemplateVar,UriTemplate};
+///
 /// struct Address {
 ///     city: String,
 ///     state: String
@@ -43,11 +48,9 @@ pub enum TemplateVar {
 ///         ])
 ///     }
 /// }
-/// ```
 ///
-/// Now, `Address` variables can be set as `UriTemplate` variables.
+/// // Now, `Address` variables can be set as `UriTemplate` variables.
 ///
-/// ```ignore
 /// let address = Address {
 ///     city: "Los Angelos".to_string(),
 ///     state: "California".to_string()
@@ -56,15 +59,12 @@ pub enum TemplateVar {
 /// let uri = UriTemplate::new("http://example.com/view{?address*}")
 ///     .set("address", &address)
 ///     .build();
-/// 
+///
 /// assert_eq!(
 ///     uri,
 ///     "http://example.com/view?city=Los%20Angelos&state=California"
 /// );
 /// ```
-pub trait IntoTemplateVar {
-    fn into_template_var(self) -> TemplateVar;
-}
 
 impl IntoTemplateVar for TemplateVar {
     fn into_template_var(self) -> TemplateVar {
