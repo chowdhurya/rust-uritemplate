@@ -9,11 +9,10 @@
 //! -----------
 //! Variable setting can be chained for nice, clean code.
 //!
-//! ```ignore
-//! extern crate uritemplate;
-//! use uritemplate::UriTemplate;
+//! ```
+//! use uritemplate::{UriTemplate};
 //!
-//! let uri = UriTemplate::new("/view/{object:1}/{/object,names}{?query*}")
+//! let uri = UriTemplate::new("/view/{object:1}/{object}/{names}{?query*}")
 //!     .set("object", "lakes")
 //!     .set("names", &["Erie", "Superior", "Ontario"])
 //!     .set("query", &[("size", "15"), ("lang", "en")])
@@ -25,7 +24,9 @@
 //! It is not possible to set a variable to the value "undefined". Instead,
 //! simply delete the variable if you have already set it.
 //!
-//! ```ignore
+//! ```
+//! use uritemplate::{UriTemplate};
+//!
 //! let mut t = UriTemplate::new("{hello}");
 //! t.set("hello", "Hello World!");
 //! assert_eq!(t.build(), "Hello%20World%21");
@@ -173,7 +174,8 @@ impl UriTemplate {
     ///
     /// Example
     /// -------
-    /// ```ignore
+    /// ```
+    /// use uritemplate::{UriTemplate};
     /// let t = UriTemplate::new("http://example.com/{name}");
     /// ```
     pub fn new(template: &str) -> UriTemplate {
@@ -213,7 +215,8 @@ impl UriTemplate {
     ///
     /// Example
     /// -------
-    /// ```ignore
+    /// ```
+    /// use uritemplate::{UriTemplate};
     /// let mut t = UriTemplate::new("{name}");
     /// t.set("name", "John Smith");
     /// ```
@@ -221,7 +224,8 @@ impl UriTemplate {
     /// This function returns the `URITemplate` so that the `set()` calls can
     /// be chained before building.
     ///
-    /// ```ignore
+    /// ```
+    /// use uritemplate::{UriTemplate};
     /// let uri = UriTemplate::new("{firstname}/{lastname}")
     ///     .set("firstname", "John")
     ///     .set("lastname", "Smith")
@@ -240,7 +244,8 @@ impl UriTemplate {
     ///
     /// Example
     ///
-    /// ```ignore
+    /// ```
+    /// use uritemplate::{UriTemplate};
     /// let mut t = UriTemplate::new("{animal}");
     /// t.set("animal", "dog");
     /// assert_eq!(t.delete("house"), false);
@@ -445,7 +450,8 @@ impl UriTemplate {
     /// Example
     /// -------
     ///
-    /// ```ignore
+    /// ```
+    /// use uritemplate::{UriTemplate};
     /// let mut t = UriTemplate::new("{hello}");
     /// t.set("hello", "Hello World!");
     /// assert_eq!(t.build(), "Hello%20World%21");
