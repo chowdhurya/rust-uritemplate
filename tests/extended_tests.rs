@@ -68,7 +68,7 @@ fn test_additional_examples_1() {
     assert_eq!(templates[7].build(), "/sparql?query=PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20SELECT%20%3Fbook%20%3Fwho%20WHERE%20%7B%20%3Fbook%20dc%3Acreator%20%3Fwho%20%7D");
     assert_eq!(templates[8].build(), "/go?uri=http%3A%2F%2Fexample.org%2F%3Furi%3Dhttp%253A%252F%252Fexample.org%252F");
     assert_eq!(templates[9].build(), "/service?word=dr%C3%BCcken");
-    assert_eq!(templates[10].build(), "/lookup?Stra%25C3%259Fe=Gr%C3%BCner%20Weg");
+    assert_eq!(templates[10].build(), "/lookup?Stra%C3%9Fe=Gr%C3%BCner%20Weg");
     assert_eq!(templates[11].build(), "%C5%A1%C3%B6%C3%A4%C5%B8%C5%93%C3%B1%C3%AA%E2%82%AC%C2%A3%C2%A5%E2%80%A1%C3%91%C3%92%C3%93%C3%94%C3%95%C3%96%C3%97%C3%98%C3%99%C3%9A%C3%A0%C3%A1%C3%A2%C3%A3%C3%A4%C3%A5%C3%A6%C3%A7%C3%BF");
     assert_eq!(templates[12].build(), "?%C5%A1%C3%B6%C3%A4%C5%B8%C5%93%C3%B1%C3%AA%E2%82%AC%C2%A3%C2%A5%E2%80%A1%C3%91%C3%92%C3%93%C3%94%C3%95=%C3%96%C3%97%C3%98%C3%99%C3%9A%C3%A0%C3%A1%C3%A2%C3%A3%C3%A4%C3%A5%C3%A6%C3%A7%C3%BF");
 }

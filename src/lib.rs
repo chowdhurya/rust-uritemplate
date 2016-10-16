@@ -269,7 +269,7 @@ impl UriTemplate {
         match *var {
             TemplateVar::Scalar(ref s) => {
                 if named {
-                    res.push_str(&encode_reserved(&v.name));
+                    res.push_str(&v.name);
                     if s == "" {
                         res.push_str(ifemp);
                         return Some(res);
