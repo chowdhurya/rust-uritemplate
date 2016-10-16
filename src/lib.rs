@@ -51,8 +51,6 @@
 //! In addition, you can implement `IntoTemplateVar` for your own types. View the
 //! documentation for `IntoTemplateVar` for information on how that works.
 
-extern crate regex;
-
 mod percent_encoding;
 mod templatevar;
 
@@ -271,7 +269,7 @@ impl UriTemplate {
         match *var {
             TemplateVar::Scalar(ref s) => {
                 if named {
-                    res.push_str(&encode_reserved(&v.name));
+                    res.push_str(&v.name);
                     if s == "" {
                         res.push_str(ifemp);
                         return Some(res);
@@ -454,7 +452,7 @@ impl UriTemplate {
         let mut res = String::new();
         for component in &self.components {
             let next = match *component {
-                TemplateComponent::Literal(ref s) => encode_reserved(s),
+                TemplateComponent::Literal(ref s) => s.to_string(),
                 TemplateComponent::VarList(ref op, ref varlist) => {
                     self.build_varlist(op, varlist)
                 }

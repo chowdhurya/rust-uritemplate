@@ -1,8 +1,6 @@
 // This module provides support for URL percent encoding as defined in the
 // RFC 6570 specification.
 
-use regex::Regex;
-
 static UNRESERVED: [&'static str; 256] = [
    "%00", "%01", "%02", "%03", "%04", "%05", "%06", "%07",
    "%08", "%09", "%0A", "%0B", "%0C", "%0D", "%0E", "%0F",
@@ -86,8 +84,5 @@ pub fn encode_reserved(s: &str) -> String {
     for &byte in s.as_bytes() {
         res.push_str(RESERVED[byte as usize]);
     }
-    // Correct any percent-encoded triplets whose percent signs were reencoded
-    Regex::new("%25(?P<hex>[0-9a-fA-F][0-9a-fA-F])")
-        .unwrap()
-        .replace_all(&res, "%$hex")
+    res
 }
