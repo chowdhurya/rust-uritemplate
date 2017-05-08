@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="Source to the Rust file `src/percent_encoding.rs`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang">
+
+    <title>percent_encoding.rs.html -- source</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc source">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+</pre><pre class="rust ">
+<span class="comment">// This module provides support for URL percent encoding as defined in the</span>
+<span class="comment">// RFC 6570 specification.</span>
+
+<span class="kw">use</span> <span class="ident">regex</span>::<span class="ident">Regex</span>;
+
+<span class="kw">static</span> <span class="ident">UNRESERVED</span>: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>; <span class="number">256</span>] <span class="op">=</span> [
+   <span class="string">&quot;%00&quot;</span>, <span class="string">&quot;%01&quot;</span>, <span class="string">&quot;%02&quot;</span>, <span class="string">&quot;%03&quot;</span>, <span class="string">&quot;%04&quot;</span>, <span class="string">&quot;%05&quot;</span>, <span class="string">&quot;%06&quot;</span>, <span class="string">&quot;%07&quot;</span>,
+   <span class="string">&quot;%08&quot;</span>, <span class="string">&quot;%09&quot;</span>, <span class="string">&quot;%0A&quot;</span>, <span class="string">&quot;%0B&quot;</span>, <span class="string">&quot;%0C&quot;</span>, <span class="string">&quot;%0D&quot;</span>, <span class="string">&quot;%0E&quot;</span>, <span class="string">&quot;%0F&quot;</span>,
+   <span class="string">&quot;%10&quot;</span>, <span class="string">&quot;%11&quot;</span>, <span class="string">&quot;%12&quot;</span>, <span class="string">&quot;%13&quot;</span>, <span class="string">&quot;%14&quot;</span>, <span class="string">&quot;%15&quot;</span>, <span class="string">&quot;%16&quot;</span>, <span class="string">&quot;%17&quot;</span>,
+   <span class="string">&quot;%18&quot;</span>, <span class="string">&quot;%19&quot;</span>, <span class="string">&quot;%1A&quot;</span>, <span class="string">&quot;%1B&quot;</span>, <span class="string">&quot;%1C&quot;</span>, <span class="string">&quot;%1D&quot;</span>, <span class="string">&quot;%1E&quot;</span>, <span class="string">&quot;%1F&quot;</span>,
+   <span class="string">&quot;%20&quot;</span>, <span class="string">&quot;%21&quot;</span>, <span class="string">&quot;%22&quot;</span>, <span class="string">&quot;%23&quot;</span>, <span class="string">&quot;%24&quot;</span>, <span class="string">&quot;%25&quot;</span>, <span class="string">&quot;%26&quot;</span>, <span class="string">&quot;%27&quot;</span>,
+   <span class="string">&quot;%28&quot;</span>, <span class="string">&quot;%29&quot;</span>, <span class="string">&quot;%2A&quot;</span>, <span class="string">&quot;%2B&quot;</span>, <span class="string">&quot;%2C&quot;</span>, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;.&quot;</span>, <span class="string">&quot;%2F&quot;</span>,
+   <span class="string">&quot;0&quot;</span>, <span class="string">&quot;1&quot;</span>, <span class="string">&quot;2&quot;</span>, <span class="string">&quot;3&quot;</span>, <span class="string">&quot;4&quot;</span>, <span class="string">&quot;5&quot;</span>, <span class="string">&quot;6&quot;</span>, <span class="string">&quot;7&quot;</span>,
+   <span class="string">&quot;8&quot;</span>, <span class="string">&quot;9&quot;</span>, <span class="string">&quot;%3A&quot;</span>, <span class="string">&quot;%3B&quot;</span>, <span class="string">&quot;%3C&quot;</span>, <span class="string">&quot;%3D&quot;</span>, <span class="string">&quot;%3E&quot;</span>, <span class="string">&quot;%3F&quot;</span>,
+   <span class="string">&quot;%40&quot;</span>, <span class="string">&quot;A&quot;</span>, <span class="string">&quot;B&quot;</span>, <span class="string">&quot;C&quot;</span>, <span class="string">&quot;D&quot;</span>, <span class="string">&quot;E&quot;</span>, <span class="string">&quot;F&quot;</span>, <span class="string">&quot;G&quot;</span>,
+   <span class="string">&quot;H&quot;</span>, <span class="string">&quot;I&quot;</span>, <span class="string">&quot;J&quot;</span>, <span class="string">&quot;K&quot;</span>, <span class="string">&quot;L&quot;</span>, <span class="string">&quot;M&quot;</span>, <span class="string">&quot;N&quot;</span>, <span class="string">&quot;O&quot;</span>,
+   <span class="string">&quot;P&quot;</span>, <span class="string">&quot;Q&quot;</span>, <span class="string">&quot;R&quot;</span>, <span class="string">&quot;S&quot;</span>, <span class="string">&quot;T&quot;</span>, <span class="string">&quot;U&quot;</span>, <span class="string">&quot;V&quot;</span>, <span class="string">&quot;W&quot;</span>,
+   <span class="string">&quot;X&quot;</span>, <span class="string">&quot;Y&quot;</span>, <span class="string">&quot;Z&quot;</span>, <span class="string">&quot;%5B&quot;</span>, <span class="string">&quot;%5C&quot;</span>, <span class="string">&quot;%5D&quot;</span>, <span class="string">&quot;%5E&quot;</span>, <span class="string">&quot;_&quot;</span>,
+   <span class="string">&quot;%60&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>, <span class="string">&quot;d&quot;</span>, <span class="string">&quot;e&quot;</span>, <span class="string">&quot;f&quot;</span>, <span class="string">&quot;g&quot;</span>,
+   <span class="string">&quot;h&quot;</span>, <span class="string">&quot;i&quot;</span>, <span class="string">&quot;j&quot;</span>, <span class="string">&quot;k&quot;</span>, <span class="string">&quot;l&quot;</span>, <span class="string">&quot;m&quot;</span>, <span class="string">&quot;n&quot;</span>, <span class="string">&quot;o&quot;</span>,
+   <span class="string">&quot;p&quot;</span>, <span class="string">&quot;q&quot;</span>, <span class="string">&quot;r&quot;</span>, <span class="string">&quot;s&quot;</span>, <span class="string">&quot;t&quot;</span>, <span class="string">&quot;u&quot;</span>, <span class="string">&quot;v&quot;</span>, <span class="string">&quot;w&quot;</span>,
+   <span class="string">&quot;x&quot;</span>, <span class="string">&quot;y&quot;</span>, <span class="string">&quot;z&quot;</span>, <span class="string">&quot;%7B&quot;</span>, <span class="string">&quot;%7C&quot;</span>, <span class="string">&quot;%7D&quot;</span>, <span class="string">&quot;~&quot;</span>, <span class="string">&quot;%7F&quot;</span>,
+   <span class="string">&quot;%80&quot;</span>, <span class="string">&quot;%81&quot;</span>, <span class="string">&quot;%82&quot;</span>, <span class="string">&quot;%83&quot;</span>, <span class="string">&quot;%84&quot;</span>, <span class="string">&quot;%85&quot;</span>, <span class="string">&quot;%86&quot;</span>, <span class="string">&quot;%87&quot;</span>,
+   <span class="string">&quot;%88&quot;</span>, <span class="string">&quot;%89&quot;</span>, <span class="string">&quot;%8A&quot;</span>, <span class="string">&quot;%8B&quot;</span>, <span class="string">&quot;%8C&quot;</span>, <span class="string">&quot;%8D&quot;</span>, <span class="string">&quot;%8E&quot;</span>, <span class="string">&quot;%8F&quot;</span>,
+   <span class="string">&quot;%90&quot;</span>, <span class="string">&quot;%91&quot;</span>, <span class="string">&quot;%92&quot;</span>, <span class="string">&quot;%93&quot;</span>, <span class="string">&quot;%94&quot;</span>, <span class="string">&quot;%95&quot;</span>, <span class="string">&quot;%96&quot;</span>, <span class="string">&quot;%97&quot;</span>,
+   <span class="string">&quot;%98&quot;</span>, <span class="string">&quot;%99&quot;</span>, <span class="string">&quot;%9A&quot;</span>, <span class="string">&quot;%9B&quot;</span>, <span class="string">&quot;%9C&quot;</span>, <span class="string">&quot;%9D&quot;</span>, <span class="string">&quot;%9E&quot;</span>, <span class="string">&quot;%9F&quot;</span>,
+   <span class="string">&quot;%A0&quot;</span>, <span class="string">&quot;%A1&quot;</span>, <span class="string">&quot;%A2&quot;</span>, <span class="string">&quot;%A3&quot;</span>, <span class="string">&quot;%A4&quot;</span>, <span class="string">&quot;%A5&quot;</span>, <span class="string">&quot;%A6&quot;</span>, <span class="string">&quot;%A7&quot;</span>,
+   <span class="string">&quot;%A8&quot;</span>, <span class="string">&quot;%A9&quot;</span>, <span class="string">&quot;%AA&quot;</span>, <span class="string">&quot;%AB&quot;</span>, <span class="string">&quot;%AC&quot;</span>, <span class="string">&quot;%AD&quot;</span>, <span class="string">&quot;%AE&quot;</span>, <span class="string">&quot;%AF&quot;</span>,
+   <span class="string">&quot;%B0&quot;</span>, <span class="string">&quot;%B1&quot;</span>, <span class="string">&quot;%B2&quot;</span>, <span class="string">&quot;%B3&quot;</span>, <span class="string">&quot;%B4&quot;</span>, <span class="string">&quot;%B5&quot;</span>, <span class="string">&quot;%B6&quot;</span>, <span class="string">&quot;%B7&quot;</span>,
+   <span class="string">&quot;%B8&quot;</span>, <span class="string">&quot;%B9&quot;</span>, <span class="string">&quot;%BA&quot;</span>, <span class="string">&quot;%BB&quot;</span>, <span class="string">&quot;%BC&quot;</span>, <span class="string">&quot;%BD&quot;</span>, <span class="string">&quot;%BE&quot;</span>, <span class="string">&quot;%BF&quot;</span>,
+   <span class="string">&quot;%C0&quot;</span>, <span class="string">&quot;%C1&quot;</span>, <span class="string">&quot;%C2&quot;</span>, <span class="string">&quot;%C3&quot;</span>, <span class="string">&quot;%C4&quot;</span>, <span class="string">&quot;%C5&quot;</span>, <span class="string">&quot;%C6&quot;</span>, <span class="string">&quot;%C7&quot;</span>,
+   <span class="string">&quot;%C8&quot;</span>, <span class="string">&quot;%C9&quot;</span>, <span class="string">&quot;%CA&quot;</span>, <span class="string">&quot;%CB&quot;</span>, <span class="string">&quot;%CC&quot;</span>, <span class="string">&quot;%CD&quot;</span>, <span class="string">&quot;%CE&quot;</span>, <span class="string">&quot;%CF&quot;</span>,
+   <span class="string">&quot;%D0&quot;</span>, <span class="string">&quot;%D1&quot;</span>, <span class="string">&quot;%D2&quot;</span>, <span class="string">&quot;%D3&quot;</span>, <span class="string">&quot;%D4&quot;</span>, <span class="string">&quot;%D5&quot;</span>, <span class="string">&quot;%D6&quot;</span>, <span class="string">&quot;%D7&quot;</span>,
+   <span class="string">&quot;%D8&quot;</span>, <span class="string">&quot;%D9&quot;</span>, <span class="string">&quot;%DA&quot;</span>, <span class="string">&quot;%DB&quot;</span>, <span class="string">&quot;%DC&quot;</span>, <span class="string">&quot;%DD&quot;</span>, <span class="string">&quot;%DE&quot;</span>, <span class="string">&quot;%DF&quot;</span>,
+   <span class="string">&quot;%E0&quot;</span>, <span class="string">&quot;%E1&quot;</span>, <span class="string">&quot;%E2&quot;</span>, <span class="string">&quot;%E3&quot;</span>, <span class="string">&quot;%E4&quot;</span>, <span class="string">&quot;%E5&quot;</span>, <span class="string">&quot;%E6&quot;</span>, <span class="string">&quot;%E7&quot;</span>,
+   <span class="string">&quot;%E8&quot;</span>, <span class="string">&quot;%E9&quot;</span>, <span class="string">&quot;%EA&quot;</span>, <span class="string">&quot;%EB&quot;</span>, <span class="string">&quot;%EC&quot;</span>, <span class="string">&quot;%ED&quot;</span>, <span class="string">&quot;%EE&quot;</span>, <span class="string">&quot;%EF&quot;</span>,
+   <span class="string">&quot;%F0&quot;</span>, <span class="string">&quot;%F1&quot;</span>, <span class="string">&quot;%F2&quot;</span>, <span class="string">&quot;%F3&quot;</span>, <span class="string">&quot;%F4&quot;</span>, <span class="string">&quot;%F5&quot;</span>, <span class="string">&quot;%F6&quot;</span>, <span class="string">&quot;%F7&quot;</span>,
+   <span class="string">&quot;%F8&quot;</span>, <span class="string">&quot;%F9&quot;</span>, <span class="string">&quot;%FA&quot;</span>, <span class="string">&quot;%FB&quot;</span>, <span class="string">&quot;%FC&quot;</span>, <span class="string">&quot;%FD&quot;</span>, <span class="string">&quot;%FE&quot;</span>, <span class="string">&quot;%FF&quot;</span>,
+];
+
+<span class="kw">static</span> <span class="ident">RESERVED</span>: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>; <span class="number">256</span>] <span class="op">=</span> [
+   <span class="string">&quot;%00&quot;</span>, <span class="string">&quot;%01&quot;</span>, <span class="string">&quot;%02&quot;</span>, <span class="string">&quot;%03&quot;</span>, <span class="string">&quot;%04&quot;</span>, <span class="string">&quot;%05&quot;</span>, <span class="string">&quot;%06&quot;</span>, <span class="string">&quot;%07&quot;</span>,
+   <span class="string">&quot;%08&quot;</span>, <span class="string">&quot;%09&quot;</span>, <span class="string">&quot;%0A&quot;</span>, <span class="string">&quot;%0B&quot;</span>, <span class="string">&quot;%0C&quot;</span>, <span class="string">&quot;%0D&quot;</span>, <span class="string">&quot;%0E&quot;</span>, <span class="string">&quot;%0F&quot;</span>,
+   <span class="string">&quot;%10&quot;</span>, <span class="string">&quot;%11&quot;</span>, <span class="string">&quot;%12&quot;</span>, <span class="string">&quot;%13&quot;</span>, <span class="string">&quot;%14&quot;</span>, <span class="string">&quot;%15&quot;</span>, <span class="string">&quot;%16&quot;</span>, <span class="string">&quot;%17&quot;</span>,
+   <span class="string">&quot;%18&quot;</span>, <span class="string">&quot;%19&quot;</span>, <span class="string">&quot;%1A&quot;</span>, <span class="string">&quot;%1B&quot;</span>, <span class="string">&quot;%1C&quot;</span>, <span class="string">&quot;%1D&quot;</span>, <span class="string">&quot;%1E&quot;</span>, <span class="string">&quot;%1F&quot;</span>,
+   <span class="string">&quot;%20&quot;</span>, <span class="string">&quot;!&quot;</span>, <span class="string">&quot;%22&quot;</span>, <span class="string">&quot;#&quot;</span>, <span class="string">&quot;$&quot;</span>, <span class="string">&quot;%25&quot;</span>, <span class="string">&quot;&amp;&quot;</span>, <span class="string">&quot;&#39;&quot;</span>,
+   <span class="string">&quot;(&quot;</span>, <span class="string">&quot;)&quot;</span>, <span class="string">&quot;*&quot;</span>, <span class="string">&quot;+&quot;</span>, <span class="string">&quot;,&quot;</span>, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;.&quot;</span>, <span class="string">&quot;/&quot;</span>,
+   <span class="string">&quot;0&quot;</span>, <span class="string">&quot;1&quot;</span>, <span class="string">&quot;2&quot;</span>, <span class="string">&quot;3&quot;</span>, <span class="string">&quot;4&quot;</span>, <span class="string">&quot;5&quot;</span>, <span class="string">&quot;6&quot;</span>, <span class="string">&quot;7&quot;</span>,
+   <span class="string">&quot;8&quot;</span>, <span class="string">&quot;9&quot;</span>, <span class="string">&quot;:&quot;</span>, <span class="string">&quot;;&quot;</span>, <span class="string">&quot;%3C&quot;</span>, <span class="string">&quot;=&quot;</span>, <span class="string">&quot;%3E&quot;</span>, <span class="string">&quot;?&quot;</span>,
+   <span class="string">&quot;@&quot;</span>, <span class="string">&quot;A&quot;</span>, <span class="string">&quot;B&quot;</span>, <span class="string">&quot;C&quot;</span>, <span class="string">&quot;D&quot;</span>, <span class="string">&quot;E&quot;</span>, <span class="string">&quot;F&quot;</span>, <span class="string">&quot;G&quot;</span>,
+   <span class="string">&quot;H&quot;</span>, <span class="string">&quot;I&quot;</span>, <span class="string">&quot;J&quot;</span>, <span class="string">&quot;K&quot;</span>, <span class="string">&quot;L&quot;</span>, <span class="string">&quot;M&quot;</span>, <span class="string">&quot;N&quot;</span>, <span class="string">&quot;O&quot;</span>,
+   <span class="string">&quot;P&quot;</span>, <span class="string">&quot;Q&quot;</span>, <span class="string">&quot;R&quot;</span>, <span class="string">&quot;S&quot;</span>, <span class="string">&quot;T&quot;</span>, <span class="string">&quot;U&quot;</span>, <span class="string">&quot;V&quot;</span>, <span class="string">&quot;W&quot;</span>,
+   <span class="string">&quot;X&quot;</span>, <span class="string">&quot;Y&quot;</span>, <span class="string">&quot;Z&quot;</span>, <span class="string">&quot;[&quot;</span>, <span class="string">&quot;%5C&quot;</span>, <span class="string">&quot;]&quot;</span>, <span class="string">&quot;%5E&quot;</span>, <span class="string">&quot;_&quot;</span>,
+   <span class="string">&quot;%60&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>, <span class="string">&quot;d&quot;</span>, <span class="string">&quot;e&quot;</span>, <span class="string">&quot;f&quot;</span>, <span class="string">&quot;g&quot;</span>,
+   <span class="string">&quot;h&quot;</span>, <span class="string">&quot;i&quot;</span>, <span class="string">&quot;j&quot;</span>, <span class="string">&quot;k&quot;</span>, <span class="string">&quot;l&quot;</span>, <span class="string">&quot;m&quot;</span>, <span class="string">&quot;n&quot;</span>, <span class="string">&quot;o&quot;</span>,
+   <span class="string">&quot;p&quot;</span>, <span class="string">&quot;q&quot;</span>, <span class="string">&quot;r&quot;</span>, <span class="string">&quot;s&quot;</span>, <span class="string">&quot;t&quot;</span>, <span class="string">&quot;u&quot;</span>, <span class="string">&quot;v&quot;</span>, <span class="string">&quot;w&quot;</span>,
+   <span class="string">&quot;x&quot;</span>, <span class="string">&quot;y&quot;</span>, <span class="string">&quot;z&quot;</span>, <span class="string">&quot;%7B&quot;</span>, <span class="string">&quot;%7C&quot;</span>, <span class="string">&quot;%7D&quot;</span>, <span class="string">&quot;~&quot;</span>, <span class="string">&quot;%7F&quot;</span>,
+   <span class="string">&quot;%80&quot;</span>, <span class="string">&quot;%81&quot;</span>, <span class="string">&quot;%82&quot;</span>, <span class="string">&quot;%83&quot;</span>, <span class="string">&quot;%84&quot;</span>, <span class="string">&quot;%85&quot;</span>, <span class="string">&quot;%86&quot;</span>, <span class="string">&quot;%87&quot;</span>,
+   <span class="string">&quot;%88&quot;</span>, <span class="string">&quot;%89&quot;</span>, <span class="string">&quot;%8A&quot;</span>, <span class="string">&quot;%8B&quot;</span>, <span class="string">&quot;%8C&quot;</span>, <span class="string">&quot;%8D&quot;</span>, <span class="string">&quot;%8E&quot;</span>, <span class="string">&quot;%8F&quot;</span>,
+   <span class="string">&quot;%90&quot;</span>, <span class="string">&quot;%91&quot;</span>, <span class="string">&quot;%92&quot;</span>, <span class="string">&quot;%93&quot;</span>, <span class="string">&quot;%94&quot;</span>, <span class="string">&quot;%95&quot;</span>, <span class="string">&quot;%96&quot;</span>, <span class="string">&quot;%97&quot;</span>,
+   <span class="string">&quot;%98&quot;</span>, <span class="string">&quot;%99&quot;</span>, <span class="string">&quot;%9A&quot;</span>, <span class="string">&quot;%9B&quot;</span>, <span class="string">&quot;%9C&quot;</span>, <span class="string">&quot;%9D&quot;</span>, <span class="string">&quot;%9E&quot;</span>, <span class="string">&quot;%9F&quot;</span>,
+   <span class="string">&quot;%A0&quot;</span>, <span class="string">&quot;%A1&quot;</span>, <span class="string">&quot;%A2&quot;</span>, <span class="string">&quot;%A3&quot;</span>, <span class="string">&quot;%A4&quot;</span>, <span class="string">&quot;%A5&quot;</span>, <span class="string">&quot;%A6&quot;</span>, <span class="string">&quot;%A7&quot;</span>,
+   <span class="string">&quot;%A8&quot;</span>, <span class="string">&quot;%A9&quot;</span>, <span class="string">&quot;%AA&quot;</span>, <span class="string">&quot;%AB&quot;</span>, <span class="string">&quot;%AC&quot;</span>, <span class="string">&quot;%AD&quot;</span>, <span class="string">&quot;%AE&quot;</span>, <span class="string">&quot;%AF&quot;</span>,
+   <span class="string">&quot;%B0&quot;</span>, <span class="string">&quot;%B1&quot;</span>, <span class="string">&quot;%B2&quot;</span>, <span class="string">&quot;%B3&quot;</span>, <span class="string">&quot;%B4&quot;</span>, <span class="string">&quot;%B5&quot;</span>, <span class="string">&quot;%B6&quot;</span>, <span class="string">&quot;%B7&quot;</span>,
+   <span class="string">&quot;%B8&quot;</span>, <span class="string">&quot;%B9&quot;</span>, <span class="string">&quot;%BA&quot;</span>, <span class="string">&quot;%BB&quot;</span>, <span class="string">&quot;%BC&quot;</span>, <span class="string">&quot;%BD&quot;</span>, <span class="string">&quot;%BE&quot;</span>, <span class="string">&quot;%BF&quot;</span>,
+   <span class="string">&quot;%C0&quot;</span>, <span class="string">&quot;%C1&quot;</span>, <span class="string">&quot;%C2&quot;</span>, <span class="string">&quot;%C3&quot;</span>, <span class="string">&quot;%C4&quot;</span>, <span class="string">&quot;%C5&quot;</span>, <span class="string">&quot;%C6&quot;</span>, <span class="string">&quot;%C7&quot;</span>,
+   <span class="string">&quot;%C8&quot;</span>, <span class="string">&quot;%C9&quot;</span>, <span class="string">&quot;%CA&quot;</span>, <span class="string">&quot;%CB&quot;</span>, <span class="string">&quot;%CC&quot;</span>, <span class="string">&quot;%CD&quot;</span>, <span class="string">&quot;%CE&quot;</span>, <span class="string">&quot;%CF&quot;</span>,
+   <span class="string">&quot;%D0&quot;</span>, <span class="string">&quot;%D1&quot;</span>, <span class="string">&quot;%D2&quot;</span>, <span class="string">&quot;%D3&quot;</span>, <span class="string">&quot;%D4&quot;</span>, <span class="string">&quot;%D5&quot;</span>, <span class="string">&quot;%D6&quot;</span>, <span class="string">&quot;%D7&quot;</span>,
+   <span class="string">&quot;%D8&quot;</span>, <span class="string">&quot;%D9&quot;</span>, <span class="string">&quot;%DA&quot;</span>, <span class="string">&quot;%DB&quot;</span>, <span class="string">&quot;%DC&quot;</span>, <span class="string">&quot;%DD&quot;</span>, <span class="string">&quot;%DE&quot;</span>, <span class="string">&quot;%DF&quot;</span>,
+   <span class="string">&quot;%E0&quot;</span>, <span class="string">&quot;%E1&quot;</span>, <span class="string">&quot;%E2&quot;</span>, <span class="string">&quot;%E3&quot;</span>, <span class="string">&quot;%E4&quot;</span>, <span class="string">&quot;%E5&quot;</span>, <span class="string">&quot;%E6&quot;</span>, <span class="string">&quot;%E7&quot;</span>,
+   <span class="string">&quot;%E8&quot;</span>, <span class="string">&quot;%E9&quot;</span>, <span class="string">&quot;%EA&quot;</span>, <span class="string">&quot;%EB&quot;</span>, <span class="string">&quot;%EC&quot;</span>, <span class="string">&quot;%ED&quot;</span>, <span class="string">&quot;%EE&quot;</span>, <span class="string">&quot;%EF&quot;</span>,
+   <span class="string">&quot;%F0&quot;</span>, <span class="string">&quot;%F1&quot;</span>, <span class="string">&quot;%F2&quot;</span>, <span class="string">&quot;%F3&quot;</span>, <span class="string">&quot;%F4&quot;</span>, <span class="string">&quot;%F5&quot;</span>, <span class="string">&quot;%F6&quot;</span>, <span class="string">&quot;%F7&quot;</span>,
+   <span class="string">&quot;%F8&quot;</span>, <span class="string">&quot;%F9&quot;</span>, <span class="string">&quot;%FA&quot;</span>, <span class="string">&quot;%FB&quot;</span>, <span class="string">&quot;%FC&quot;</span>, <span class="string">&quot;%FD&quot;</span>, <span class="string">&quot;%FE&quot;</span>, <span class="string">&quot;%FF&quot;</span>,
+];
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_unreserved</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+    <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">byte</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>() {
+        <span class="ident">res</span>.<span class="ident">push_str</span>(<span class="ident">UNRESERVED</span>[<span class="ident">byte</span> <span class="kw">as</span> <span class="ident">usize</span>]);
+    }
+    <span class="ident">res</span>
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode_reserved</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+    <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">byte</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>() {
+        <span class="ident">res</span>.<span class="ident">push_str</span>(<span class="ident">RESERVED</span>[<span class="ident">byte</span> <span class="kw">as</span> <span class="ident">usize</span>]);
+    }
+    <span class="comment">// Correct any percent-encoded triplets whose percent signs were reencoded</span>
+    <span class="ident">Regex</span>::<span class="ident">new</span>(<span class="string">&quot;%25(?P&lt;hex&gt;[0-9a-fA-F][0-9a-fA-F])&quot;</span>)
+        .<span class="ident">unwrap</span>()
+        .<span class="ident">replace_all</span>(<span class="kw-2">&amp;</span><span class="ident">res</span>, <span class="string">&quot;%$hex&quot;</span>)
+}
+</pre>
+</section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "uritemplate";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

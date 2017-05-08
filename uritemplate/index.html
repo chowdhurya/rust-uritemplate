@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `uritemplate` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, uritemplate">
+
+    <title>uritemplate - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc mod">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Crate uritemplate</p><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'uritemplate', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Crate <a class="mod" href=''>uritemplate</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/uritemplate/lib.rs.html#1-467' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p><code>rust-uritemplate</code> is a Rust implementation of
+<a href="http://tools.ietf.org/html/rfc6570">RFC6570  - URI Template</a> that can
+process URI Templates up to and including ones designated as Level 4 by the
+specification. It passes all of the tests in the
+<a href="https://github.com/uri-templates/uritemplate-test">uritemplate-test</a> test
+suite.</p>
+
+<h2 id='basic-usage' class='section-header'><a href='#basic-usage'>Basic Usage</a></h2>
+<p>Variable setting can be chained for nice, clean code.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">uritemplate</span>;
+<span class="kw">use</span> <span class="ident">uritemplate</span>::<span class="ident">UriTemplate</span>;
+
+<span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <span class="ident">UriTemplate</span>::<span class="ident">new</span>(<span class="string">&quot;/view/{object:1}/{/object,names}{?query*}&quot;</span>)
+    .<span class="ident">set</span>(<span class="string">&quot;object&quot;</span>, <span class="string">&quot;lakes&quot;</span>)
+    .<span class="ident">set</span>(<span class="string">&quot;names&quot;</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;Erie&quot;</span>, <span class="string">&quot;Superior&quot;</span>, <span class="string">&quot;Ontario&quot;</span>])
+    .<span class="ident">set</span>(<span class="string">&quot;query&quot;</span>, <span class="kw-2">&amp;</span>[(<span class="string">&quot;size&quot;</span>, <span class="string">&quot;15&quot;</span>), (<span class="string">&quot;lang&quot;</span>, <span class="string">&quot;en&quot;</span>)])
+    .<span class="ident">build</span>();
+
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">uri</span>, <span class="string">&quot;/view/l/lakes/Erie,Superior,Ontario?size=15&amp;lang=en&quot;</span>);</pre>
+
+<p>It is not possible to set a variable to the value &quot;undefined&quot;. Instead,
+simply delete the variable if you have already set it.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">UriTemplate</span>::<span class="ident">new</span>(<span class="string">&quot;{hello}&quot;</span>);
+<span class="ident">t</span>.<span class="ident">set</span>(<span class="string">&quot;hello&quot;</span>, <span class="string">&quot;Hello World!&quot;</span>);
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">t</span>.<span class="ident">build</span>(), <span class="string">&quot;Hello%20World%21&quot;</span>);
+
+<span class="ident">t</span>.<span class="ident">delete</span>(<span class="string">&quot;hello&quot;</span>);
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">t</span>.<span class="ident">build</span>(), <span class="string">&quot;&quot;</span>);</pre>
+
+<p>The <code>delete</code> function returns <code>true</code> if the variable existed and <code>false</code>
+otherwise.</p>
+
+<h2 id='supported-types' class='section-header'><a href='#supported-types'>Supported Types</a></h2>
+<p>Any type that implements <code>IntoTemplateVar</code> can be set as the value of a
+<code>UriTemplate</code> variable. The following implementations are provided by
+default for each type of variable:</p>
+
+<ul>
+<li>Scalar Values: <code>String</code>, <code>&amp;str</code></li>
+<li>Lists: <code>Vec&lt;String&gt;</code>, <code>&amp;[String]</code>, <code>&amp;[str]</code></li>
+<li>Associative Arrays: <code>Vec&lt;(String, String)&gt;</code>, <code>&amp;[(String, String)]</code>,
+<code>&amp;[(&amp;str, &amp;str)]</code>, <code>&amp;HashMap&lt;String, String&gt;</code></li>
+</ul>
+
+<p>In addition, you can implement <code>IntoTemplateVar</code> for your own types. View the
+documentation for <code>IntoTemplateVar</code> for information on how that works.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.UriTemplate.html"
+                                  title='struct uritemplate::UriTemplate'>UriTemplate</a></td>
+                           <td class='docblock-short'>
+                                <p>The main struct that processes and builds URI Templates.</p>
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.TemplateVar.html"
+                                  title='enum uritemplate::TemplateVar'>TemplateVar</a></td>
+                           <td class='docblock-short'>
+                                <p>TemplateVar represents the value of a template variable, which can be a
+scalar (a simple string), a list of strings, or an associative array of
+strings.</p>
+                           </td>
+                       </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="trait" href="trait.IntoTemplateVar.html"
+                                  title='trait uritemplate::IntoTemplateVar'>IntoTemplateVar</a></td>
+                           <td class='docblock-short'>
+                                <p>IntoTemplateVar represents any type that can be converted into a TemplateVar
+for use as the value of a template variable, such as a <code>String</code>,
+<code>Vec&lt;String&gt;</code>, or <code>Vec&lt;(String, String)&gt;</code>. Default implementations are
+available for those three types, as well as the <code>&amp;str</code> versions.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "uritemplate";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>
