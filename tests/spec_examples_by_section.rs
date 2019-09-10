@@ -28,7 +28,10 @@ fn test_321_variable_expansion() {
         templates[i].set("count", &["one", "two", "three"] as &[&str]);
         templates[i].set("half", "50%");
         templates[i].set("x", "1024");
-        templates[i].set("keys", &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)]);
+        templates[i].set(
+            "keys",
+            &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)],
+        );
         templates[i].set("y", "768");
         templates[i].set("who", "fred");
         templates[i].set("empty", "");
@@ -80,7 +83,10 @@ fn test_322_simple_string_expansion() {
         templates[i].set("count", &["one", "two", "three"] as &[&str]);
         templates[i].set("half", "50%");
         templates[i].set("x", "1024");
-        templates[i].set("keys", &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)]);
+        templates[i].set(
+            "keys",
+            &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)],
+        );
         templates[i].set("y", "768");
         templates[i].set("who", "fred");
         templates[i].set("empty", "");
@@ -158,7 +164,10 @@ fn test_323_reserved_expansion() {
         templates[i].set("count", &["one", "two", "three"] as &[&str]);
         templates[i].set("half", "50%");
         templates[i].set("x", "1024");
-        templates[i].set("keys", &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)]);
+        templates[i].set(
+            "keys",
+            &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)],
+        );
         templates[i].set("y", "768");
         templates[i].set("who", "fred");
         templates[i].set("empty", "");
@@ -172,7 +181,10 @@ fn test_323_reserved_expansion() {
     assert_eq!(templates[2].build(), "/value");
     assert_eq!(templates[3].build(), "Hello%20World!");
     assert_eq!(templates[4].build(), "50%25");
-    assert_eq!(templates[5].build(), "http%3A%2F%2Fexample.com%2Fhome%2Findex");
+    assert_eq!(
+        templates[5].build(),
+        "http%3A%2F%2Fexample.com%2Fhome%2Findex"
+    );
     assert_eq!(templates[6].build(), "http://example.com/home/index");
     assert_eq!(templates[7].build(), "OX");
     assert_eq!(templates[8].build(), "OX");
@@ -231,7 +243,10 @@ fn test_324_fragment_expansion() {
         templates[i].set("count", &["one", "two", "three"] as &[&str]);
         templates[i].set("half", "50%");
         templates[i].set("x", "1024");
-        templates[i].set("keys", &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)]);
+        templates[i].set(
+            "keys",
+            &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)],
+        );
         templates[i].set("y", "768");
         templates[i].set("who", "fred");
         templates[i].set("empty", "");
@@ -291,7 +306,10 @@ fn test_325_label_expansion_with_dot_prefix() {
         templates[i].set("count", &["one", "two", "three"] as &[&str]);
         templates[i].set("half", "50%");
         templates[i].set("x", "1024");
-        templates[i].set("keys", &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)]);
+        templates[i].set(
+            "keys",
+            &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)],
+        );
         templates[i].set("y", "768");
         templates[i].set("who", "fred");
         templates[i].set("empty", "");
@@ -362,7 +380,10 @@ fn test_326_path_segment_expansion() {
         templates[i].set("count", &["one", "two", "three"] as &[&str]);
         templates[i].set("half", "50%");
         templates[i].set("x", "1024");
-        templates[i].set("keys", &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)]);
+        templates[i].set(
+            "keys",
+            &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)],
+        );
         templates[i].set("y", "768");
         templates[i].set("who", "fred");
         templates[i].set("empty", "");
@@ -432,7 +453,10 @@ fn test_327_path_style_parameter_expansion() {
         templates[i].set("count", &["one", "two", "three"] as &[&str]);
         templates[i].set("half", "50%");
         templates[i].set("x", "1024");
-        templates[i].set("keys", &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)]);
+        templates[i].set(
+            "keys",
+            &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)],
+        );
         templates[i].set("y", "768");
         templates[i].set("who", "fred");
         templates[i].set("empty", "");
@@ -498,7 +522,10 @@ fn test_328_form_style_query_expansion() {
         templates[i].set("count", &["one", "two", "three"] as &[&str]);
         templates[i].set("half", "50%");
         templates[i].set("x", "1024");
-        templates[i].set("keys", &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)]);
+        templates[i].set(
+            "keys",
+            &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)],
+        );
         templates[i].set("y", "768");
         templates[i].set("who", "fred");
         templates[i].set("empty", "");
@@ -561,7 +588,10 @@ fn test_329_form_style_query_continuation() {
         templates[i].set("count", &["one", "two", "three"] as &[&str]);
         templates[i].set("half", "50%");
         templates[i].set("x", "1024");
-        templates[i].set("keys", &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)]);
+        templates[i].set(
+            "keys",
+            &[("semi", ";"), ("dot", "."), ("comma", ",")] as &[(&str, &str)],
+        );
         templates[i].set("y", "768");
         templates[i].set("who", "fred");
         templates[i].set("empty", "");

@@ -14,7 +14,7 @@ pub enum TemplateVar {
     List(Vec<String>),
     /// An associative array of strings, such as
     /// `[("key1", "value1"), ("key2", "value2")]`
-    AssociativeArray(Vec<(String, String)>)
+    AssociativeArray(Vec<(String, String)>),
 }
 
 /// IntoTemplateVar represents any type that can be converted into a TemplateVar
@@ -56,7 +56,7 @@ pub enum TemplateVar {
 /// let uri = UriTemplate::new("http://example.com/view{?address*}")
 ///     .set("address", &address)
 ///     .build();
-/// 
+///
 /// assert_eq!(
 ///     uri,
 ///     "http://example.com/view?city=Los%20Angelos&state=California"
@@ -72,7 +72,7 @@ impl IntoTemplateVar for TemplateVar {
     }
 }
 
-impl <'a> IntoTemplateVar for &'a str {
+impl<'a> IntoTemplateVar for &'a str {
     fn into_template_var(self) -> TemplateVar {
         TemplateVar::Scalar(self.to_string())
     }
@@ -84,7 +84,7 @@ impl IntoTemplateVar for String {
     }
 }
 
-impl <'a> IntoTemplateVar for &'a [String] {
+impl<'a> IntoTemplateVar for &'a [String] {
     fn into_template_var(self) -> TemplateVar {
         let mut vec = Vec::new();
         for s in self {
@@ -100,7 +100,7 @@ impl IntoTemplateVar for Vec<String> {
     }
 }
 
-impl <'a, 'b> IntoTemplateVar for &'a[&'b str] {
+impl<'a, 'b> IntoTemplateVar for &'a [&'b str] {
     fn into_template_var(self) -> TemplateVar {
         let mut vec = Vec::new();
         for s in self {
@@ -110,7 +110,7 @@ impl <'a, 'b> IntoTemplateVar for &'a[&'b str] {
     }
 }
 
-impl <'a> IntoTemplateVar for &'a [(String, String)] {
+impl<'a> IntoTemplateVar for &'a [(String, String)] {
     fn into_template_var(self) -> TemplateVar {
         let mut vec = Vec::new();
         for s in self {
@@ -126,7 +126,7 @@ impl IntoTemplateVar for Vec<(String, String)> {
     }
 }
 
-impl <'a, 'b, 'c> IntoTemplateVar for &'a[(&'b str, &'c str)] {
+impl<'a, 'b, 'c> IntoTemplateVar for &'a [(&'b str, &'c str)] {
     fn into_template_var(self) -> TemplateVar {
         let mut vec = Vec::new();
         for s in self {
@@ -136,7 +136,7 @@ impl <'a, 'b, 'c> IntoTemplateVar for &'a[(&'b str, &'c str)] {
     }
 }
 
-impl <'a> IntoTemplateVar for &'a HashMap<String, String> {
+impl<'a> IntoTemplateVar for &'a HashMap<String, String> {
     fn into_template_var(self) -> TemplateVar {
         let mut vec = Vec::new();
         for (k, v) in self {
@@ -146,7 +146,7 @@ impl <'a> IntoTemplateVar for &'a HashMap<String, String> {
     }
 }
 
-impl <'a, 'b, 'c> IntoTemplateVar for &'a HashMap<&'b str, &'c str> {
+impl<'a, 'b, 'c> IntoTemplateVar for &'a HashMap<&'b str, &'c str> {
     fn into_template_var(self) -> TemplateVar {
         let mut vec = Vec::new();
         for (k, v) in self {
