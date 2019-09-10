@@ -90,4 +90,5 @@ pub fn encode_reserved(s: &str) -> String {
     Regex::new("%25(?P<hex>[0-9a-fA-F][0-9a-fA-F])")
         .unwrap()
         .replace_all(&res, "%$hex")
+        .to_string()
 }
