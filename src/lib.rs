@@ -65,12 +65,12 @@ pub use templatevar::{IntoTemplateVar, TemplateVar};
 enum VarSpecType {
     Raw,
     Prefixed(u16),
-    Exploded
+    Exploded,
 }
 
 struct VarSpec {
     name: String,
-    var_type: VarSpecType
+    var_type: VarSpecType,
 }
 
 #[derive(PartialEq)]
@@ -82,18 +82,18 @@ enum Operator {
     Semi,
     Question,
     Ampersand,
-    Hash
+    Hash,
 }
 
 enum TemplateComponent {
     Literal(String),
-    VarList(Operator, Vec<VarSpec>)
+    VarList(Operator, Vec<VarSpec>),
 }
 
 /// The main struct that processes and builds URI Templates.
 pub struct UriTemplate {
     components: Vec<TemplateComponent>,
-    vars: HashMap<String, TemplateVar>
+    vars: HashMap<String, TemplateVar>,
 }
 
 fn prefixed(s: &str, prefix: u16) -> String {
@@ -121,7 +121,7 @@ fn parse_varlist(varlist: &str) -> TemplateComponent {
         '?' => Operator::Question,
         '&' => Operator::Ampersand,
         '#' => Operator::Hash,
-        _ => Operator::Null
+        _ => Operator::Null,
     };
     if operator != Operator::Null {
         varlist.remove(0);
@@ -135,7 +135,7 @@ fn parse_varlist(varlist: &str) -> TemplateComponent {
             varspec.pop();
             varspec_list.push(VarSpec {
                 name: varspec,
-                var_type: VarSpecType::Exploded
+                var_type: VarSpecType::Exploded,
             });
             continue;
         }
@@ -144,17 +144,17 @@ fn parse_varlist(varlist: &str) -> TemplateComponent {
             let prefix = u16::from_str(parts[1]).ok();
             let prefix = match prefix {
                 Some(p) => p,
-                None => 9999u16
+                None => 9999u16,
             };
             varspec_list.push(VarSpec {
                 name: parts[0].to_string(),
-                var_type: VarSpecType::Prefixed(prefix)
+                var_type: VarSpecType::Prefixed(prefix),
             });
             continue;
         }
         varspec_list.push(VarSpec {
             name: varspec,
-            var_type: VarSpecType::Raw
+            var_type: VarSpecType::Raw,
         });
     }
 
@@ -162,13 +162,13 @@ fn parse_varlist(varlist: &str) -> TemplateComponent {
 }
 
 fn encode_vec<E>(v: &Vec<String>, encoder: E) -> Vec<String>
-    where E: Fn(&str) -> String
+where
+    E: Fn(&str) -> String,
 {
     v.iter().map(|s| encoder(&s)).collect()
 }
 
 impl UriTemplate {
-
     /// Creates a new URI Template from the given template string.
     ///
     /// Example
@@ -205,7 +205,7 @@ impl UriTemplate {
 
         UriTemplate {
             components: components,
-            vars: HashMap::new()
+            vars: HashMap::new(),
         }
     }
 
@@ -228,10 +228,9 @@ impl UriTemplate {
     ///     .build();
     /// assert_eq!(uri, "John/Smith");
     /// ```
-    pub fn set<I: IntoTemplateVar>(&mut self, varname: &str, var: I)
-        -> &mut UriTemplate
-    {
-        self.vars.insert(varname.to_string(), var.into_template_var());
+    pub fn set<I: IntoTemplateVar>(&mut self, varname: &str, var: I) -> &mut UriTemplate {
+        self.vars
+            .insert(varname.to_string(), var.into_template_var());
         self
     }
 
@@ -249,7 +248,7 @@ impl UriTemplate {
     pub fn delete(&mut self, varname: &str) -> bool {
         match self.vars.remove(varname) {
             Some(_) => true,
-            None => false
+            None => false,
         }
     }
 
@@ -258,14 +257,22 @@ impl UriTemplate {
         self.vars.clear();
     }
 
-    fn build_varspec<E>(&self, v: &VarSpec, sep: &str, named: bool, ifemp: &str,
-        encoder: E) -> Option<String> where E: Fn(&str) -> String
+    fn build_varspec<E>(
+        &self,
+        v: &VarSpec,
+        sep: &str,
+        named: bool,
+        ifemp: &str,
+        encoder: E,
+    ) -> Option<String>
+    where
+        E: Fn(&str) -> String,
     {
         let mut res = String::new();
 
         let var = match self.vars.get(&v.name) {
             Some(v) => v,
-            None => { return None }
+            None => return None,
         };
 
         match *var {
@@ -286,7 +293,7 @@ impl UriTemplate {
                         res.push_str(&encoder(&prefixed(s, p)));
                     }
                 };
-            },
+            }
             TemplateVar::List(ref l) => {
                 if l.len() == 0 {
                     return None;
@@ -302,37 +309,27 @@ impl UriTemplate {
                             res.push('=');
                         }
                         res.push_str(&encode_vec(l, encoder).join(","));
-                    },
+                    }
                     VarSpecType::Exploded => {
                         if named {
                             let pairs: Vec<String> = l
                                 .iter()
                                 .map(|x| {
                                     let val: String = if x == "" {
-                                        format!(
-                                            "{}{}",
-                                            &encode_reserved(&v.name),
-                                            ifemp
-                                        )
+                                        format!("{}{}", &encode_reserved(&v.name), ifemp)
                                     } else {
-                                        format!(
-                                            "{}={}",
-                                            &encode_reserved(&v.name),
-                                            &encoder(x)
-                                        )
+                                        format!("{}={}", &encode_reserved(&v.name), &encoder(x))
                                     };
                                     val
                                 })
                                 .collect();
                             res.push_str(&pairs.join(sep));
                         } else {
-                            res.push_str(
-                                &encode_vec(&l, encoder).join(sep)
-                            );
+                            res.push_str(&encode_vec(&l, encoder).join(sep));
                         }
                     }
                 }
-            },
+            }
             TemplateVar::AssociativeArray(ref a) => {
                 if a.len() == 0 {
                     return None;
@@ -346,31 +343,20 @@ impl UriTemplate {
                         let pairs: Vec<String> = a
                             .iter()
                             .map(|&(ref k, ref v)| {
-                                format!("{},{}",
-                                    &encode_reserved(k),
-                                    &encoder(v)
-                                )
+                                format!("{},{}", &encode_reserved(k), &encoder(v))
                             })
                             .collect();
                         res.push_str(&pairs.join(","));
-                    },
+                    }
                     VarSpecType::Exploded => {
                         if named {
                             let pairs: Vec<String> = a
                                 .iter()
                                 .map(|&(ref k, ref v)| {
                                     let val: String = if v == "" {
-                                        format!(
-                                            "{}{}",
-                                            &encode_reserved(k),
-                                            ifemp
-                                        )
+                                        format!("{}{}", &encode_reserved(k), ifemp)
                                     } else {
-                                        format!(
-                                            "{}={}",
-                                            &encode_reserved(k),
-                                            &encoder(v)
-                                        )
+                                        format!("{}={}", &encode_reserved(k), &encoder(v))
                                     };
                                     val
                                 })
@@ -380,11 +366,7 @@ impl UriTemplate {
                             let pairs: Vec<String> = a
                                 .iter()
                                 .map(|&(ref k, ref v)| {
-                                    format!(
-                                        "{}={}",
-                                        &encode_reserved(k),
-                                        &encoder(v)
-                                    )
+                                    format!("{}={}", &encode_reserved(k), &encoder(v))
                                 })
                                 .collect();
                             res.push_str(&pairs.join(sep));
@@ -397,9 +379,7 @@ impl UriTemplate {
         Some(res)
     }
 
-    fn build_varlist(&self, operator: &Operator, varlist: &Vec<VarSpec>)
-        -> String
-    {
+    fn build_varlist(&self, operator: &Operator, varlist: &Vec<VarSpec>) -> String {
         let mut values: Vec<String> = Vec::new();
         let (first, sep, named, ifemp, allow_reserved) = match *operator {
             Operator::Null => ("", ",", false, "", false),
@@ -409,23 +389,17 @@ impl UriTemplate {
             Operator::Semi => (";", ";", true, "", false),
             Operator::Question => ("?", "&", true, "=", false),
             Operator::Ampersand => ("&", "&", true, "=", false),
-            Operator::Hash => ("#", ",", false, "", true)
+            Operator::Hash => ("#", ",", false, "", true),
         };
 
         for varspec in varlist {
             let built = if allow_reserved {
                 self.build_varspec(varspec, sep, named, ifemp, encode_reserved)
             } else {
-                self.build_varspec(
-                    varspec,
-                    sep,
-                    named,
-                    ifemp,
-                    encode_unreserved
-                )
+                self.build_varspec(varspec, sep, named, ifemp, encode_unreserved)
             };
             match built {
-                Some(s) => { values.push(s) },
+                Some(s) => values.push(s),
                 None => {}
             }
         }
@@ -455,13 +429,10 @@ impl UriTemplate {
         for component in &self.components {
             let next = match *component {
                 TemplateComponent::Literal(ref s) => encode_reserved(s),
-                TemplateComponent::VarList(ref op, ref varlist) => {
-                    self.build_varlist(op, varlist)
-                }
+                TemplateComponent::VarList(ref op, ref varlist) => self.build_varlist(op, varlist),
             };
             res.push_str(&next);
         }
         res
     }
-
 }
