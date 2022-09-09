@@ -8,10 +8,7 @@ fn test_example() {
         .set("names", &["Erie", "Superior", "Ontario"])
         .set("query", &[("size", "15"), ("lang", "en")])
         .build();
-    assert_eq!(
-        uri,
-        "/view/l/lakes/Erie,Superior,Ontario?size=15&lang=en"
-    );
+    assert_eq!(uri, "/view/l/lakes/Erie,Superior,Ontario?size=15&lang=en");
 }
 
 #[test]
@@ -54,14 +51,14 @@ fn test_delete_all() {
 
 struct Address {
     city: String,
-    state: String
+    state: String,
 }
 
-impl <'a> IntoTemplateVar for &'a Address {
+impl<'a> IntoTemplateVar for &'a Address {
     fn into_template_var(self) -> TemplateVar {
         TemplateVar::AssociativeArray(vec![
             ("city".to_string(), self.city.clone()),
-            ("state".to_string(), self.state.clone())
+            ("state".to_string(), self.state.clone()),
         ])
     }
 }
@@ -70,7 +67,7 @@ impl <'a> IntoTemplateVar for &'a Address {
 fn test_intotemplatevar() {
     let address = Address {
         city: "Los Angelos".to_string(),
-        state: "California".to_string()
+        state: "California".to_string(),
     };
     let uri = UriTemplate::new("http://example.com/view{?address*}")
         .set("address", &address)
