@@ -62,19 +62,28 @@ use std::str::FromStr;
 
 pub use templatevar::{IntoTemplateVar, TemplateVar};
 
-enum VarSpecType {
+/// Variable specification types
+///
+/// rfc [section-2.4](https://www.rfc-editor.org/rfc/rfc6570#section-2.4)
+pub enum VarSpecType {
     Raw,
     Prefixed(u16),
     Exploded,
 }
 
-struct VarSpec {
-    name: String,
-    var_type: VarSpecType,
+/// Variable specification
+///
+/// rfc [section-2.4](https://www.rfc-editor.org/rfc/rfc6570#section-2.4)
+pub struct VarSpec {
+    pub name: String,
+    pub var_type: VarSpecType,
 }
 
+/// Operator prefixes
+///
+/// rfc [section-1.2](rfc [section-2.4](https://www.rfc-editor.org/rfc/rfc6570#section-1.2))
 #[derive(PartialEq)]
-enum Operator {
+pub enum Operator {
     Null,
     Plus,
     Dot,
@@ -85,7 +94,11 @@ enum Operator {
     Hash,
 }
 
-enum TemplateComponent {
+/// Template components
+///
+/// The components may be either literals or expressions, prefixed and/or suffixed
+/// with an specifier and/or a specifier. rfc [section-1.1](https://www.rfc-editor.org/rfc/rfc6570#section-1.1)
+pub enum TemplateComponent {
     Literal(String),
     VarList(Operator, Vec<VarSpec>),
 }
@@ -207,6 +220,11 @@ impl UriTemplate {
             components: components,
             vars: HashMap::new(),
         }
+    }
+
+    /// The template in its own components
+    pub fn components(&self) -> &[TemplateComponent] {
+        &self.components
     }
 
     /// Sets the value of a variable in the URI Template.
