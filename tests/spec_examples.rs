@@ -6,10 +6,7 @@ use uritemplate::UriTemplate;
 // Level 1 Examples
 #[test]
 fn test_level_1() {
-    let mut templates = [
-        UriTemplate::new("{var}"),
-        UriTemplate::new("{hello}"),
-    ];
+    let mut templates = [UriTemplate::new("{var}"), UriTemplate::new("{hello}")];
 
     for i in 0..templates.len() {
         templates[i].set("hello", "Hello World!");
@@ -143,7 +140,10 @@ fn test_level_4() {
         templates[i].set("hello", "Hello World!");
         templates[i].set("var", "value");
         templates[i].set("list", &["red", "green", "blue"] as &[&str]);
-        templates[i].set("keys", &[("dot", "."), ("semi", ";"), ("comma", ",")] as &[(&str, &str)]);
+        templates[i].set(
+            "keys",
+            &[("dot", "."), ("semi", ";"), ("comma", ",")] as &[(&str, &str)],
+        );
     }
 
     assert_eq!(templates[0].build(), "val");
